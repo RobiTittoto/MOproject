@@ -1,20 +1,19 @@
 from creazione_problema import Graph, Travel, Node
 import gurobipy as gp
+from gurobipy import Var
 
 
-def modello(graph: Graph, origin: Node, destination: Node):
-    travel = Travel(origin, destination)
-
+def modello(graph: Graph, o: int, d: int):
+    travel = Travel(graph.get_node(o), graph.get_node(d))
     model = gp.Model()
-
-    omega = model.addVars(graph.get_hyperlink(), vtype=gp.GRB.BINARY, name='omega')
-
-    # assegno alle prime num_link omega il valore di w_11, w_22, w_23 ...
+    print(len(graph.get_hyperlink()))
+    omega = model.addVars(graph.get_hyperlink().keys(), vtype=gp.GRB.BINARY, name='omega')
+    print('Omega: ' + str(omega))
 
     model.addConstr(
         (
-                gp.quicksum(omega[link.label * graph.link_number + link.label] for link in travel.origin.input) -
-                gp.quicksum(omega[link.label * graph.link_number + link.label] for link in travel.origin.input)
+                gp.quicksum(omega[link, link] for link in travel.origin.input) -
+                gp.quicksum(omega[link, link] for link in travel.origin.output)
                 == -1
         ), name='vincolo 8.1'
     )
@@ -22,30 +21,40 @@ def modello(graph: Graph, origin: Node, destination: Node):
     model.addConstr(
         (
                 gp.quicksum(
-                    omega[(link.label * graph.link_number + link.label) + 1] for link in travel.destination.input) -
+                    omega[link, link] for link in travel.destination.input) -
                 gp.quicksum(
-                    omega[(link.label * graph.link_number + link.label) + 1] for link in travel.destination.input)
+                    omega[link, link] for link in travel.destination.output)
                 == 1
         ), name='vincolo 8.2'
     )
 
-    model.addConstrs(
+    '''model.addConstrs(
         (
-            gp.quicksum(omega[(link.label * graph.link_number + link.label) + 1] for link in graph.nodes[node].input) -
-            gp.quicksum(omega[(link.label * graph.link_number + link.label) + 1] for link in graph.nodes[node].input)
+            gp.quicksum(omega[link, link] for link in graph.nodes[node].input) -
+            gp.quicksum(omega[link, link] for link in graph.nodes[node].output)
             == 0 for node in range(len(graph.nodes))
         ), name='vincolo 8.3'
-    )
+    )'''
+
+    for node in graph.nodes:
+        if node != travel.origin and node != travel.destination:
+            model.addConstr(
+                (gp.quicksum(omega[link, link] for link in node.input) ==
+                 gp.quicksum(omega[link, link] for link in node.output)
+            )
+            )
     for node in range(len(graph.nodes)):
         model.addConstrs(
             (
-                omega[(link_a.label * graph.link_number + link_b.label) + 1] == 0 for link_a in graph.nodes[node].output
-                for link_b in graph.nodes[node].output if link_a != link_b
-            ), name='vincolo 9a'
+                omega[link_a, link_b] == 0
+                for link_a in graph.nodes[node].output
+                for link_b in graph.nodes[node].output
+                if link_a != link_b
+            ), name='vincolo_9a'
         )
         model.addConstrs(
             (
-                omega[(link_a.label * graph.link_number + link_b.label) + 1] == 0
+                omega[link_a, link_b] == 0
                 for link_a in graph.nodes[node].input
                 for link_b in graph.nodes[node].input
                 if link_a != link_b
@@ -53,26 +62,62 @@ def modello(graph: Graph, origin: Node, destination: Node):
         )
         model.addConstrs(
             (
-                omega[(link_a.label * graph.link_number + link_b.label) + 1] == omega[
-                    (link_b.label * graph.link_number + link_a.label) + 1]
+                omega[link_a, link_b]
+                ==
+                omega[link_b, link_a]
                 for link_a in graph.nodes[node].input
                 for link_b in graph.nodes[node].input
                 if link_a != link_b
             ), name='vincolo 10'
         )
-        phi = [hyperlink.rho * hyperlink.link_a.sigma * hyperlink.link_b.sigma for hyperlink in graph.get_hyperlink()]
-        model.setObjective(
-            (
-                    gp.quicksum(
-                        link.mu * omega[(link.label * graph.link_number + link.label) + 1]
-                        for link in graph.link
-                    )
-                    +
-                    gp.quicksum(
-                        phi[(link_a.label * graph.link_number + link_b.label) + 1] * phi[
-                            (link_a.label * graph.link_number + link_b.label) + 1]
-                        for link_a in graph.link
-                        for link_b in graph.link
-                    )
-            )
-        )
+
+    hyperlinks = graph.get_hyperlink()
+    #phi = [h.rho * h.link_a.sigma * h.link_b.sigma for key in hyperlinks.keys() if (h := hyperlinks.get(key))]
+    model.setObjective(
+        (
+                gp.quicksum(
+                    link.mu * omega[link, link]
+                    for link in graph.links
+                )
+                +
+                gp.quicksum(
+                    hyperlinks[(link_a, link_b)].phi *
+                    omega[link_a, link_b]
+                    for link_a in graph.links
+                    for link_b in graph.links
+                )
+        ), sense=gp.GRB.MINIMIZE
+    )
+
+    model.optimize()
+
+
+
+
+
+
+def main():
+    incidence_matrix = [
+        [-1, 0, 0, 0],
+        [1, -1, -1, 0],
+        [0, 1, 1, -1],
+        [0, 0, 0, 1]
+    ]
+
+    mu_list = [1.0, 2.0, 3.0, 4.0]
+    sigma_list = [0.1, 0.2, 0.3, 0.4]
+
+
+    g = Graph.from_incidence_matrix(incidence_matrix, mu_list, sigma_list)
+    print(g)
+    origin = g.get_node(1)
+    destination = g.get_node(3)
+    print(origin, destination)
+    modello(g, 1, 3)
+
+    print(g)
+    for l in g.links:
+        print(l)
+
+if __name__ == "__main__":
+    main()
