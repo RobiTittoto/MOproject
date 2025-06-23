@@ -7,7 +7,7 @@ def modello(graph: Graph, o: int, d: int):
     travel = Travel(graph.get_node(o), graph.get_node(d))
     model = gp.Model()
     print(len(graph.get_hyperlink()))
-    omega = model.addVars(graph.get_hyperlink().keys(), vtype=gp.GRB.BINARY, name='omega')
+    omega = model.addVars(graph.get_hyperlink().keys(), vtype=gp.GRB.CONTINUOUS, name='omega')
     print('Omega: ' + str(omega))
 
     model.addConstr(
@@ -91,7 +91,10 @@ def modello(graph: Graph, o: int, d: int):
 
     model.optimize()
 
-
+    for link_a in graph.links:
+        for link_b in graph.links:
+            if omega[link_a, link_b].X != 0:
+                print(omega[link_a, link_b])
 
 
 

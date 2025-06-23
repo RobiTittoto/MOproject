@@ -5,25 +5,45 @@ import numpy as np
 from m_v_problem import modello
 
 
-def generate_random_graph(num_nodes: int, num_links: int) -> Graph:
+def generate_connected_graph(num_nodes: int) -> Graph:
     """
-    Generates a random graph with the given number of nodes and links.
+    Generates a connected graph where each node has at least one incoming and one outgoing link.
+    The total number of links will be at least num_nodes to ensure connectivity.
 
     Parameters:
         num_nodes (int): Number of nodes in the graph
-        num_links (int): Number of links in the graph
 
     Returns:
-        Graph: A randomly generated graph instance
+        Graph: A randomly generated connected graph instance
     """
+    if num_nodes < 2:
+        raise ValueError("Number of nodes must be at least 2")
+
     # Create empty graph
     g = Graph()
 
     # Add nodes
     nodes = [g.add_node() for _ in range(num_nodes)]
 
-    # Generate random links
-    for _ in range(num_links):
+    # Step 1: Create a cycle to ensure each node has at least one incoming and one outgoing link
+    # Shuffle the nodes to create a random cycle
+    shuffled_nodes = random.sample(nodes, len(nodes))
+
+    for i in range(len(shuffled_nodes)):
+        origin = shuffled_nodes[i]
+        destination = shuffled_nodes[(i + 1) % len(shuffled_nodes)]
+
+        # Generate random parameters
+        mu = random.uniform(10, 30)
+        sigma = random.uniform(0.1 * mu, 0.3 * mu)
+
+        g.add_link(origin, destination, mu, sigma)
+
+    # Step 2: Add additional random links to increase connectivity
+    # We'll add at least num_nodes//2 more links
+    additional_links = max(num_nodes // 2, 1)
+
+    for _ in range(additional_links):
         # Randomly select origin and destination (must be different)
         origin, destination = random.sample(nodes, 2)
 
@@ -31,8 +51,7 @@ def generate_random_graph(num_nodes: int, num_links: int) -> Graph:
         mu = random.uniform(10, 30)
         sigma = random.uniform(0.1 * mu, 0.3 * mu)
 
-        # Create link with empty rho dictionary (will be populated later)
-        link = g.add_link(origin, destination, mu, sigma)
+        g.add_link(origin, destination, mu, sigma)
 
     # Generate correlation coefficients (rho) between links
     for i, link_a in enumerate(g.links):
@@ -51,16 +70,70 @@ def generate_random_graph(num_nodes: int, num_links: int) -> Graph:
     return g
 
 
-def main():
-    # Example usage
-    num_nodes = 4
-    num_links = 4
+import matplotlib.pyplot as plt
+import networkx as nx
+from creazione_problema import Graph, Node, Link
 
-    # Generate random graph
-    random_graph = generate_random_graph(num_nodes, num_links)
+
+def draw_graph(graph: Graph):
+    """
+    Visualizza il grafo utilizzando networkx e matplotlib.
+
+    Args:
+        graph (Graph): Il grafo da visualizzare
+    """
+    # Crea un grafo diretto networkx
+    G = nx.DiGraph()
+
+    # Aggiungi nodi
+    for node in graph.nodes:
+        G.add_node(node.label)
+
+    # Aggiungi archi con attributi
+    for link in graph.links:
+        G.add_edge(link.origin.label,
+                   link.destination.label,
+                   mu=f"{link.mu:.1f}",
+                   sigma=f"{link.sigma:.1f}")
+
+    # Disegna il grafo
+    pos = nx.spring_layout(G)  # Posizionamento dei nodi
+    plt.figure(figsize=(10, 8))
+
+    # Disegna nodi
+    nx.draw_networkx_nodes(G, pos, node_size=700, node_color='lightblue')
+
+    # Disegna etichette dei nodi
+    nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
+
+    # Disegna archi
+    edges = G.edges()
+    nx.draw_networkx_edges(G, pos, edgelist=edges,
+                           arrowstyle='->', arrowsize=20,
+                           edge_color='gray')
+
+    # Aggiungi etichette agli archi (mu ± sigma)
+    edge_labels = {}
+    for (u, v, d) in G.edges(data=True):
+        edge_labels[(u, v)] = f"μ={d['mu']}\nσ={d['sigma']}"
+
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
+                                 font_size=9, label_pos=0.3)
+
+    plt.title("Grafo Orientato con Proprietà Stocastiche")
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+def main(num_nodes):
+    # Example usage
+    #num_nodes = int(input("Enter the number of nodes (minimum 2): "))
+
+    # Generate random connected graph
+    random_graph = generate_connected_graph(num_nodes)
 
     # Print graph information
-    print(f"Generated graph with {random_graph.nodes_number} nodes and {random_graph.link_number} links:")
+    print(f"\nGenerated graph with {random_graph.nodes_number} nodes and {random_graph.links_number} links:")
     print(random_graph)
 
     # Print node details
@@ -82,7 +155,12 @@ def main():
             if other_link != link and printed < 3:
                 print(f"    with Link {other_link.label}: {rho:.2f}")
                 printed += 1
+    draw_graph(random_graph)
 
-    modello(random_graph, 1, 4)
+    # Assuming modello is a function that processes the graph
+    modello(random_graph, 1, num_nodes)
+
+
+
 if __name__ == "__main__":
-    main()
+    main(num_nodes=4)

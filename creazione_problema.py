@@ -70,7 +70,7 @@ class Graph:
         return len(self.nodes)
 
     @property
-    def link_number(self) -> int:
+    def links_number(self) -> int:
         return len(self.links)
 
     def add_node(self) -> Node:
@@ -83,11 +83,11 @@ class Graph:
         label = len(self.links) + 1
         link = Link(origin, destination, mu, sigma, label)
         self.links.append(link)
-        for node in self.nodes:
+        '''for node in self.nodes:
             if node.label == origin.label:
                 node.input.append(link)
             if node.label == destination.label:
-                node.output.append(link)
+                node.output.append(link)'''
 
         return link
 
@@ -167,7 +167,7 @@ class Graph:
         return g
 
     def __repr__(self):
-        return f"Graph(nodes={self.nodes_number}, links={self.link_number})"
+        return f"Graph(nodes={self.nodes_number}, links={self.links_number})"
 
 
 class Travel:
