@@ -1,14 +1,15 @@
-from creazione_problema import Graph, Travel, Node
+from graph_classes import Graph, Travel, Node
 import gurobipy as gp
-from gurobipy import Var
 
+def resolve_mv_problem(graph: Graph, o: int, d: int, log: bool):
 
-def modello(graph: Graph, o: int, d: int):
-    travel = Travel(graph.get_node(o), graph.get_node(d))
     model = gp.Model()
-    print(len(graph.get_hyperlink()))
+    if not log :
+        model.setParam('OutputFlag', 0)
+
+    travel = Travel(graph.get_node(o), graph.get_node(d))
+
     omega = model.addVars(graph.get_hyperlink().keys(), vtype=gp.GRB.CONTINUOUS, name='omega')
-    print('Omega: ' + str(omega))
 
     model.addConstr(
         (
@@ -94,33 +95,8 @@ def modello(graph: Graph, o: int, d: int):
     for link_a in graph.links:
         for link_b in graph.links:
             if omega[link_a, link_b].X != 0:
-                print(omega[link_a, link_b])
-
-
-
-
-def main():
-    incidence_matrix = [
-        [-1, 0, 0, 0],
-        [1, -1, -1, 0],
-        [0, 1, 1, -1],
-        [0, 0, 0, 1]
-    ]
-
-    mu_list = [1.0, 2.0, 3.0, 4.0]
-    sigma_list = [0.1, 0.2, 0.3, 0.4]
-
-
-    g = Graph.from_incidence_matrix(incidence_matrix, mu_list, sigma_list)
-    print(g)
-    origin = g.get_node(1)
-    destination = g.get_node(3)
-    print(origin, destination)
-    modello(g, 1, 3)
-
-    print(g)
-    for l in g.links:
-        print(l)
-
-if __name__ == "__main__":
-    main()
+                if omega[link_a, link_b].X == 1:
+                    travel.links.append(link_a)
+                if omega[link_a, link_b].X != 1 or link_a !=link_b:
+                    print("Errore")
+    return travel

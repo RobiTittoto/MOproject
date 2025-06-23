@@ -1,8 +1,8 @@
 import random
-from creazione_problema import Graph, Node, Link
-import numpy as np
-
-from m_v_problem import modello
+from graph_classes import Graph, Node, Link
+import matplotlib.pyplot as plt
+import networkx as nx
+from graph_classes import Graph, Node, Link
 
 
 def generate_connected_graph(num_nodes: int) -> Graph:
@@ -70,11 +70,6 @@ def generate_connected_graph(num_nodes: int) -> Graph:
     return g
 
 
-import matplotlib.pyplot as plt
-import networkx as nx
-from creazione_problema import Graph, Node, Link
-
-
 def draw_graph(graph: Graph):
     """
     Visualizza il grafo utilizzando networkx e matplotlib.
@@ -93,8 +88,7 @@ def draw_graph(graph: Graph):
     for link in graph.links:
         G.add_edge(link.origin.label,
                    link.destination.label,
-                   mu=f"{link.mu:.1f}",
-                   sigma=f"{link.sigma:.1f}")
+                   label=str(link.label))  # Usiamo il label dell'arco
 
     # Disegna il grafo
     pos = nx.spring_layout(G)  # Posizionamento dei nodi
@@ -112,55 +106,14 @@ def draw_graph(graph: Graph):
                            arrowstyle='->', arrowsize=20,
                            edge_color='gray')
 
-    # Aggiungi etichette agli archi (mu ± sigma)
-    edge_labels = {}
-    for (u, v, d) in G.edges(data=True):
-        edge_labels[(u, v)] = f"μ={d['mu']}\nσ={d['sigma']}"
+    # Aggiungi etichette agli archi (solo il numero/label dell'arco)
+    edge_labels = nx.get_edge_attributes(G, 'label')
 
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
-                                 font_size=9, label_pos=0.3)
+                                 font_size=12, font_weight='bold')
 
-    plt.title("Grafo Orientato con Proprietà Stocastiche")
+    plt.title("Grafo Orientato")
     plt.axis('off')
     plt.tight_layout()
     plt.show()
 
-def main(num_nodes):
-    # Example usage
-    #num_nodes = int(input("Enter the number of nodes (minimum 2): "))
-
-    # Generate random connected graph
-    random_graph = generate_connected_graph(num_nodes)
-
-    # Print graph information
-    print(f"\nGenerated graph with {random_graph.nodes_number} nodes and {random_graph.links_number} links:")
-    print(random_graph)
-
-    # Print node details
-    print("\nNodes:")
-    for node in random_graph.nodes:
-        print(f"{node}:")
-        print(f"  Input links: {[l.label for l in node.input]}")
-        print(f"  Output links: {[l.label for l in node.output]}")
-
-    # Print link details
-    print("\nLinks:")
-    for link in random_graph.links:
-        print(f"Link {link.label}: {link}")
-        print(f"  mu: {link.mu:.2f}, sigma: {link.sigma:.2f}")
-        print(f"  Correlations (sample):")
-        # Print up to 3 correlation values
-        printed = 0
-        for other_link, rho in link.rho.items():
-            if other_link != link and printed < 3:
-                print(f"    with Link {other_link.label}: {rho:.2f}")
-                printed += 1
-    draw_graph(random_graph)
-
-    # Assuming modello is a function that processes the graph
-    modello(random_graph, 1, num_nodes)
-
-
-
-if __name__ == "__main__":
-    main(num_nodes=4)

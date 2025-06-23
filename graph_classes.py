@@ -5,24 +5,22 @@ Classi:
 
 Classe Graph:
     - nodes (list[Node]) -> Lista dei nodi del grafo
-    - nodes_number (int) -> Numero totale di nodi
     - link (list[Link]) -> Lista degli archi (link) del grafo
-    - link_number (int) -> Numero totale di archi
+
 
 Classe Link:
+    - label (int) -> numero identificativo
     - origin (Node) -> Nodo di origine dell'arco
     - destination (Node) -> Nodo di destinazione dell'arco
     - mu (float) -> Media del tempo stocastico di attraversamento dell'arco
     - sigma (float) -> Deviazione standard del tempo di attraversamento stocastico
     - rho (dict[Link, float]) -> Coefficiente di correlazione con ogni altro arco
-
 Classe Node:
-    - label (int) -> Numero nodo
+    - label (int) -> Numero identificativo
     - input (list[Link]) -> Lista degli archi entranti nel nodo
     - output (list[Link]) -> Lista degli archi uscenti dal nodo
 """
 from typing import List, Dict, Optional
-import numpy as np
 
 
 class Node:
@@ -37,12 +35,12 @@ class Node:
 
 class Link:
     def __init__(self, origin: Node, destination: Node, mu: float, sigma: float, label: int):
+        self.label: int = label
         self.origin: Node = origin
         self.destination: Node = destination
         self.mu: float = mu
         self.sigma: float = sigma
         self.rho: Dict['Link', float] = {}
-        self.label: int = label
 
         origin.output.append(self)
         destination.input.append(self)
@@ -174,3 +172,4 @@ class Travel:
     def __init__(self, origin: Node, destination: Node):
         self.origin: Node = origin
         self.destination: Node = destination
+        self.links: List[Link] = []
