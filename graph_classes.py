@@ -47,7 +47,7 @@ class Link:
 
     def __repr__(self):
         return (f"Link(from=Node({self.origin.label}), "
-                f"to=Node({self.destination.label}), mu={self.mu}, sigma={self.sigma})")
+                f"to=Node({self.destination.label}), mu={self.mu}, sigma={self.sigma}, label={self.label})")
 
 
 class Hyperlink:
@@ -58,9 +58,9 @@ class Hyperlink:
         self.phi = rho * link_a.sigma * link_b.sigma
 
 class Travel:
-    def __init__(self, origin: Node, destination: Node):
-        self.origin: Node = origin
-        self.destination: Node = destination
+    def __init__(self, start: Node, end: Node):
+        self.start: Node = start
+        self.end: Node = end
         self.links: List[Link] = []
 
 class Graph:
@@ -86,11 +86,6 @@ class Graph:
         label = len(self.links) + 1
         link = Link(origin, destination, mu, sigma, label)
         self.links.append(link)
-        '''for node in self.nodes:
-            if node.label == origin.label:
-                node.input.append(link)
-            if node.label == destination.label:
-                node.output.append(link)'''
         return link
 
     def get_node(self, label: int) -> Node:
@@ -170,6 +165,7 @@ class Graph:
             g.add_link(nodes[origin_idx], nodes[destination_idx], mu, sigma)
 
         return g
+
 
     def __repr__(self):
         return f"Graph(nodes={self.nodes_number}, links={self.links_number})"

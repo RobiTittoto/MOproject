@@ -50,4 +50,4 @@ def main(num_nodes, origin, destination, log: bool):
 
 
 if __name__ == "__main__":
-    main(num_nodes = 20,origin=1,destination=5, log=False)
+    main(num_nodes = 5,origin=1,destination=5, log=False)

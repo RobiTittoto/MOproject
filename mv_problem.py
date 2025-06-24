@@ -46,8 +46,8 @@ def model_add_constrain(model: gp.Model, omega , graph:Graph):
     travel = graph.travel
     model.addConstr(
         (
-                gp.quicksum(omega[link, link] for link in travel.origin.input) -
-                gp.quicksum(omega[link, link] for link in travel.origin.output)
+                gp.quicksum(omega[link, link] for link in travel.start.input) -
+                gp.quicksum(omega[link, link] for link in travel.start.output)
                 == -1
         ), name='vincolo 8.1'
     )
@@ -55,15 +55,15 @@ def model_add_constrain(model: gp.Model, omega , graph:Graph):
     model.addConstr(
         (
                 gp.quicksum(
-                    omega[link, link] for link in travel.destination.input) -
+                    omega[link, link] for link in travel.end.input) -
                 gp.quicksum(
-                    omega[link, link] for link in travel.destination.output)
+                    omega[link, link] for link in travel.end.output)
                 == 1
         ), name='vincolo 8.2'
     )
 
     for node in graph.nodes:
-        if node != travel.origin and node != travel.destination:
+        if node != travel.start and node != travel.end:
             model.addConstr(
                 (gp.quicksum(omega[link, link] for link in node.input) ==
                  gp.quicksum(omega[link, link] for link in node.output)

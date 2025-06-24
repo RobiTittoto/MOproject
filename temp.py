@@ -1,11 +1,13 @@
 import math
 import gurobipy as gp
+
+import instance_generator
 import mv_problem
 
 from graph_classes import Graph
 
 def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_depth=100):
-    epsilon = 0.05
+    epsilon = 1e-6
 
     try:
         model = gp.Model()
@@ -24,7 +26,7 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_dep
                         link.mu * omega[link, link]
                         for link in graph.links
                     )
-                    + (gamma * math.sqrt(lb)) / (ub - lb) *
+                    + ( ( gamma * math.sqrt(ub) - gamma * math.sqrt(lb) ) / (ub - lb) )*
                     gp.quicksum(
                         hyperlinks[(link_a, link_b)].phi *
                         omega[link_a, link_b]
@@ -37,6 +39,16 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_dep
         )
 
         model.optimize()
+
+        for link_a in graph.links:
+            for link_b in graph.links:
+                if omega[link_a, link_b].X != 0:
+                    if omega[link_a, link_b].X == 1:
+                        graph.travel.links.append(link_a)
+                    if omega[link_a, link_b].X != 1 or link_a != link_b:
+                        print("Errore")
+        for link in graph.travel.links:
+            print(link.label)
 
         if model.status != gp.GRB.OPTIMAL:
             raise Exception("Model didn't solve to optimality")
