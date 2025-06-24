@@ -57,12 +57,17 @@ class Hyperlink:
         self.rho: float = rho
         self.phi = rho * link_a.sigma * link_b.sigma
 
+class Travel:
+    def __init__(self, origin: Node, destination: Node):
+        self.origin: Node = origin
+        self.destination: Node = destination
+        self.links: List[Link] = []
 
 class Graph:
     def __init__(self):
         self.nodes: List[Node] = []
         self.links: List[Link] = []
-
+        self.travel: Travel
     @property
     def nodes_number(self) -> int:
         return len(self.nodes)
@@ -86,7 +91,6 @@ class Graph:
                 node.input.append(link)
             if node.label == destination.label:
                 node.output.append(link)'''
-
         return link
 
     def get_node(self, label: int) -> Node:
@@ -99,6 +103,9 @@ class Graph:
             for link_b in self.links:
                 hyperlinks[link_a, link_b] = Hyperlink(link_a, link_b, link_a.rho.get(link_b))
         return hyperlinks
+
+    def set_travel(self, origin: Node, destination: Node):
+        self.travel = Travel(origin, destination)
 
     def to_incidence_matrix(self) -> List[List[int]]:
         # Mappa: label -> index di riga
@@ -168,8 +175,3 @@ class Graph:
         return f"Graph(nodes={self.nodes_number}, links={self.links_number})"
 
 
-class Travel:
-    def __init__(self, origin: Node, destination: Node):
-        self.origin: Node = origin
-        self.destination: Node = destination
-        self.links: List[Link] = []
