@@ -1,7 +1,5 @@
-import instance_generator
-import logger
-import ms_problem
-import mv_problem
+from framework import logger, instance_generator, mv_problem
+
 
 def main(num_nodes, origin, destination, log: bool):
 
@@ -42,12 +40,12 @@ def main(num_nodes, origin, destination, log: bool):
 
     # Assuming modello is a function that processes the graph
 
-    ms_travel = ms_problem.resolve_ms_problem(graph)
-    '''mv_travel = mv_problem.resolve_mv_problem(graph, log)
+    #ms_travel = ms_problem.resolve_ms_problem(graph)
+    mv_travel = mv_problem.resolve_mv_problem(graph, log)
     for link in mv_travel.links:
-        print(link.label)'''
+        print(link.label)
 
 
 
 if __name__ == "__main__":
-    main(num_nodes = 5,origin=1,destination=5, log=False)
+    main(num_nodes = 5,origin=1,destination=5, log=True)

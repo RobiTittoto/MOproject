@@ -1,4 +1,4 @@
-from graph_classes import Graph, Travel, Node
+from framework.graph_classes import Graph
 import gurobipy as gp
 
 def resolve_mv_problem(graph: Graph, log: bool):

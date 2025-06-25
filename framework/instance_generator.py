@@ -1,8 +1,7 @@
 import random
-from graph_classes import Graph, Node, Link
 import matplotlib.pyplot as plt
 import networkx as nx
-from graph_classes import Graph, Node, Link
+from framework.graph_classes import Graph
 
 
 def generate_connected_graph(num_nodes: int) -> Graph:
@@ -41,7 +40,7 @@ def generate_connected_graph(num_nodes: int) -> Graph:
 
     # Step 2: Add additional random links to increase connectivity
     # We'll add at least num_nodes//2 more links
-    additional_links = num_nodes*7 # max(num_nodes // 2, 1)
+    additional_links = max(num_nodes // 2, 1) # max(num_nodes // 2, 1)
 
     for _ in range(additional_links):
         # Randomly select origin and destination (must be different)

@@ -1,10 +1,13 @@
 import math
+
+import mv_problem
+from framework.graph_classes import Graph
 import gurobipy as gp
 
-import instance_generator
-import mv_problem
 
-from graph_classes import Graph
+def initialization():
+    pass
+
 
 def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_depth=100):
     epsilon = 1e-6
@@ -40,15 +43,6 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_dep
 
         model.optimize()
 
-        for link_a in graph.links:
-            for link_b in graph.links:
-                if omega[link_a, link_b].X != 0:
-                    if omega[link_a, link_b].X == 1:
-                        graph.travel.links.append(link_a)
-                    if omega[link_a, link_b].X != 1 or link_a != link_b:
-                        print("Errore")
-        for link in graph.travel.links:
-            print(link.label)
 
         if model.status != gp.GRB.OPTIMAL:
             raise Exception("Model didn't solve to optimality")
@@ -60,7 +54,7 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_dep
             for link_b in graph.links
         )
 
-
+        print("eta star: ", eta_star)
         # Calcolare che branch esplorare
         val_lower = calc(graph, omega, gamma, lb, eta_star, eta_star)
         val_upper = calc(graph, omega, gamma, eta_star, ub, eta_star)
@@ -88,7 +82,7 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, gamma, depth=0, max_dep
 
 
 def calc(graph, omega, gamma, lb, ub, eta_star):
-    print("eta_star:", eta_star,"lb:",lb,"ub:", ub)
+    print("lb:",lb,"ub:", ub)
     try:
         term1 = sum(link.mu * omega[link, link].X for link in graph.links)
         term2 = (gamma * math.sqrt(lb)) / (ub - lb) * eta_star
@@ -99,3 +93,18 @@ def calc(graph, omega, gamma, lb, ub, eta_star):
         print(f"Error in calc: {str(e)}")
         return float('inf')  # Return worst case if calculation fails
 
+def resolve_ms_problem(graph: Graph):
+    gamma = 6
+    hyperlinks = graph.get_hyperlink()
+    l0 = 0
+    u0 = 0
+    for key in hyperlinks.keys():
+        u0 += hyperlinks[key].phi
+
+
+    print("l0={}".format(l0))
+    print("u0={}".format(u0))
+
+    epsilon = 1e-6
+
+    print(branch_and_bound(l0, u0,graph, gamma))
