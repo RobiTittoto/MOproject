@@ -6,7 +6,7 @@ Classi:
 Classe Graph:
     - nodes (list[Node]) -> Lista dei nodi del grafo
     - link (list[Link]) -> Lista degli archi (link) del grafo
-
+    - travel (Travel) -> Percorso
 
 Classe Link:
     - label (int) -> numero identificativo
@@ -19,8 +19,21 @@ Classe Node:
     - label (int) -> Numero identificativo
     - input (list[Link]) -> Lista degli archi entranti nel nodo
     - output (list[Link]) -> Lista degli archi uscenti dal nodo
+Class Travel:
+    -start (Node) -> Nodo di origine del percorso
+    -end (Node) -> Nodo di destinazione del percorso
+    -path (Node) -> Percoso da start a end
+    -processing_time (float) -> Tempo utilizzato per ottenre il percorso
+    -memory_usage (float) -> Utilizzo della memoria per ottenre il percorso
+Class Hyperlink:
+    - link_a (Link)
+    - link_b (Link)
+    - phi (float) -> Coefficiente di correlazione tra link_a e link_b * sigma link_a + sigma link_b
 """
+from turtledemo.penrose import start
 from typing import List, Dict, Optional
+
+from networkx.generators.classic import path_graph
 
 
 class Node:
@@ -51,23 +64,74 @@ class Link:
 
 
 class Hyperlink:
-    def __init__(self, link_a: Link, link_b: Link, rho: float):
+    def __init__(self, link_a: Link, link_b: Link):
         self.link_a: Link = link_a
         self.link_b: Link = link_b
-        self.rho: float = rho
-        self.phi = rho * link_a.sigma * link_b.sigma
+        self.phi = link_a.rho.get(link_b) * link_a.sigma * link_b.sigma
+
 
 class Travel:
-    def __init__(self, start: Node, end: Node):
+    def __init__(self, start: Node, end: Node, gamma: float):
         self.start: Node = start
         self.end: Node = end
-        self.links: List[Link] = []
+        self.gamma: float = gamma
+        self.path: List[Link] = []
+        self.processing_time: float = None
+        self.memory_usage: float = None
+        self.travel_time: float = None
+
+    '''def add_path(self, links: List[Link]):
+        exit_loops = False
+        node = start
+        for searched_link in self.start.output:
+            for link in links:
+                if searched_link == link:
+                    self.path.append(link)
+                    exit_loops = True
+                    break
+                if exit_loops:
+
+                    break
+
+        for _ in range(len(links)):
+            if node == self.end:
+                return self.path
+            for searched_link in self.start.output:
+                for link in links:
+                    if searched_link == link:
+                        self.path.append(link)
+                        break
+            node = searched_link.destination'''
+
+    def add_path(self, links: List[Link]):
+        self.path = []
+        node = self.start
+        i = 0
+        while True:
+            searched_link = node.output[i]
+            i += 1
+            for link in links:
+                if searched_link == link:
+                    self.path.append(link)
+                    node = searched_link.destination
+                    i = 0
+                    break
+            if node == self.end:
+                break
+        return self.path
+
+    def __repr__(self):
+        for link in self.path:
+            percorso = [link.label for link in self.path]
+        return (f"Start: {self.start}), "
+                f"End: {self.end}), , travel time={self.processing_time}, memory usage={self.memory_usage})")
 
 class Graph:
     def __init__(self):
         self.nodes: List[Node] = []
         self.links: List[Link] = []
-        self.travel: Travel
+        self.travel: Travel = None
+
     @property
     def nodes_number(self) -> int:
         return len(self.nodes)
@@ -96,11 +160,12 @@ class Graph:
 
         for link_a in self.links:
             for link_b in self.links:
-                hyperlinks[link_a, link_b] = Hyperlink(link_a, link_b, link_a.rho.get(link_b))
+                hyperlinks[link_a, link_b] = Hyperlink(link_a, link_b)
         return hyperlinks
 
-    def set_travel(self, origin: Node, destination: Node):
-        self.travel = Travel(origin, destination)
+    def new_travel(self, origin: Node, destination: Node, gamma: float) -> Travel:
+        self.travel = Travel(origin, destination,gamma)
+        return self.travel
 
     def to_incidence_matrix(self) -> List[List[int]]:
         # Mappa: label -> index di riga
@@ -166,8 +231,5 @@ class Graph:
 
         return g
 
-
     def __repr__(self):
         return f"Graph(nodes={self.nodes_number}, links={self.links_number})"
-
-
