@@ -1,41 +1,44 @@
 import copy
-
+import xpress
 from framework import logger, instance_generator, mv_problem, ms_problem
 
 
-def main(num_nodes, origin, destination, log: bool):
+def main(num_nodes, origin, destination, log: bool, licenza):
 
     logger.LOG_ENABLED = log
-
+    xpress.init(licenza)
     if num_nodes < origin or num_nodes < destination or origin == destination:
+        print("Errore nella definizione di origine e destinazione")
         return
 
-    # Generazione grafo randomico
+    # Generazione grafo con num_nodes nodi
     graph = instance_generator.generate_connected_graph(num_nodes)
 
     #Stampa informazioni sul grafo
     logger.log(f"\nGenerated graph with {graph.nodes_number} nodes and {graph.links_number} links:")
     logger.log(graph)
 
-    # Stampa informzioni sui nodi
+    # Stampa informazioni sui nodi
     logger.log("\nNodes:")
     for node in graph.nodes:
         logger.log(f"{node}:")
         logger.log(f"  Input links: {[l.label for l in node.input]}")
         logger.log(f"  Output links: {[l.label for l in node.output]}")
 
-    # Stampa informazioni archi
+    # Stampa informazioni sugli archi
     logger.log("\nLinks:")
     for link in graph.links:
         logger.log(f"Link {link.label}: {link}")
         logger.log(f"  mu: {link.mu:.2f}, sigma: {link.sigma:.2f}")
         logger.log(f"  Correlations (sample):")
-        # Print up to 3 correlation values
+        # Stampa 3 valori di correlazione
         printed = 0
         for other_link, rho in link.rho.items():
             if other_link != link and printed < 3:
                 logger.log(f"    with Link {other_link.label}: {rho:.2f}")
                 printed += 1
+
+    #Stampa rappresentazione grafica del grafo
     instance_generator.draw_graph(graph)
 
     # Esecuzione dei modelli di ottimizzazione
@@ -48,16 +51,12 @@ def main(num_nodes, origin, destination, log: bool):
     print("Calcolo miglior percorso dal nodo ", origin, " al nodo ", destination)
     # Stampa percorso del problema MV
     print("\nPercorso trovato (MV): (archi)", " -> ".join(str(link.label) for link in mv_travel_result.travel.path))
-
+    print("Valore funzione obiettivo: ", mv_travel_result.travel.travel_time)
     # Stampa percorso del problema MS
     print("Percorso trovato (MS): (archi)", " -> ".join(str(link.label) for link in ms_travel_result.travel.path))
-
-    print("Memoria utilizzata: ", mv_travel_result.travel.memory_usage)
-    print("Memoria utilizzata: ", ms_travel_result.travel.memory_usage)
-    print("Tempo utilizzata: ", mv_travel_result.travel.processing_time)
-    print("Tempo utilizzata: ", ms_travel_result.travel.processing_time)
+    print("Valore funzione obiettivo: ", ms_travel_result.travel.travel_time)
 
 
 
 if __name__ == "__main__":
-    main(num_nodes = 25,origin=1,destination=10, log=False) #Settare log a true per ottenere più informazioni sulle operazioni svolte dal programma
+    main(num_nodes = 25,origin=1,destination=10, log=False, licenza = '/Applications/FICO Xpress/xpressmp/bin/xpauth.xpr') #Settare log a true per ottenere più informazioni sulle operazioni svolte dal programma

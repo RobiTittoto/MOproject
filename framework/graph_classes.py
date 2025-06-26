@@ -20,11 +20,12 @@ Classe Node:
     - input (list[Link]) -> Lista degli archi entranti nel nodo
     - output (list[Link]) -> Lista degli archi uscenti dal nodo
 Class Travel:
-    -start (Node) -> Nodo di origine del percorso
-    -end (Node) -> Nodo di destinazione del percorso
-    -path (Node) -> Percoso da start a end
-    -processing_time (float) -> Tempo utilizzato per ottenre il percorso
-    -memory_usage (float) -> Utilizzo della memoria per ottenre il percorso
+    - start (Node) -> Nodo di origine del percorso
+    - end (Node) -> Nodo di destinazione del percorso
+    - gamma (float) ->
+    - path (Node) -> Percorso da start a end
+    - processing_time (float) -> Tempo utilizzato per ottenere il percorso
+    - memory_usage (float) -> Utilizzo della memoria per ottenere il percorso
 Class Hyperlink:
     - link_a (Link)
     - link_b (Link)
@@ -79,29 +80,6 @@ class Travel:
         self.processing_time: float = None
         self.memory_usage: float = None
         self.travel_time: float = None
-
-    '''def add_path(self, links: List[Link]):
-        exit_loops = False
-        node = start
-        for searched_link in self.start.output:
-            for link in links:
-                if searched_link == link:
-                    self.path.append(link)
-                    exit_loops = True
-                    break
-                if exit_loops:
-
-                    break
-
-        for _ in range(len(links)):
-            if node == self.end:
-                return self.path
-            for searched_link in self.start.output:
-                for link in links:
-                    if searched_link == link:
-                        self.path.append(link)
-                        break
-            node = searched_link.destination'''
 
     def add_path(self, links: List[Link]):
         self.path = []
