@@ -7,7 +7,6 @@ def resolve_mv_problem(graph: Graph):
     logger.log("----- Risoluzione problema mv ------")
 
     # Inizializza il modello Xpress
-    #xp.init(logger.licenza)
     model = xp.problem()
 
     # Imposta il livello di log
@@ -15,11 +14,15 @@ def resolve_mv_problem(graph: Graph):
 
     # Creazione delle variabili omega
     hyperlinks = graph.get_hyperlink()
-    omega = {(link_a, link_b): xp.var(name=f'omega_{link_a}_{link_b}')
-             for (link_a, link_b) in hyperlinks.keys()}
 
-    # Aggiungta delle variabili al modello
-    model.addVariable(omega)
+    omega = {}
+
+    for (link_a, link_b) in hyperlinks.keys():
+
+        omega[(link_a, link_b)] = model.addVariable(
+            name=f'omega_{link_a}_{link_b}',
+            vartype=xp.continuous
+        )
 
     # Aggiungta dei vincoli
     model_add_constrain(model, omega, graph)
@@ -69,7 +72,7 @@ def resolve_mv_problem(graph: Graph):
     graph.travel.add_path(path)
     graph.travel.processing_time = model.attributes.time
     graph.travel.memory_usage = model.attributes.peakmemory/ 1024 / 1024
-    graph.travel.travel_time = model.getObjVal()
+    graph.travel.travel_time = model.attributes.objval
 
     return graph
 

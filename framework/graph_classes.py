@@ -31,10 +31,8 @@ Class Hyperlink:
     - link_b (Link)
     - phi (float) -> Coefficiente di correlazione tra link_a e link_b * sigma link_a + sigma link_b
 """
-from turtledemo.penrose import start
 from typing import List, Dict, Optional
 
-from networkx.generators.classic import path_graph
 
 
 class Node:

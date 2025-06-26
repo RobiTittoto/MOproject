@@ -1,4 +1,5 @@
 import random
+
 import matplotlib.pyplot as plt
 import networkx as nx
 from framework.graph_classes import Graph

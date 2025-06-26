@@ -11,7 +11,6 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, depth=0, max_depth=100)
     epsilon = 1e-6
 
     try:
-        #xp.init(logger.licenza)
         model = xp.problem()
 
         # Impostazione del livello di log
@@ -19,11 +18,14 @@ def branch_and_bound(lb: float, ub: float, graph: Graph, depth=0, max_depth=100)
 
         # Creazione delle variabili omega
         hyperlinks = graph.get_hyperlink()
-        omega = {(link_a, link_b): xp.var(name=f'omega_{link_a}_{link_b}')
-                 for (link_a, link_b) in hyperlinks.keys()}
 
-        # Aggiunta delle variabili al modello
-        model.addVariable(omega)
+        omega = {}
+        for (link_a, link_b) in hyperlinks.keys():
+            omega[(link_a, link_b)] = model.addVariable(
+                name=f'omega_{link_a}_{link_b}',
+                vartype=xp.continuous
+            )
+
 
         # Aggiunta vincoli al modello
         mv_problem.model_add_constrain(model, omega, graph)
@@ -142,7 +144,7 @@ def resolve_ms_problem(graph: Graph):
     graph.travel.add_path(path)
     graph.travel.processing_time = total_time
     graph.travel.memory_usage = max_memory_used
-    graph.travel.travel_time = model.getObjVal()
+    graph.travel.travel_time = model.attributes.objval
 
 
     return graph
